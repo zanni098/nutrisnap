@@ -6,6 +6,12 @@ nutritional breakdown** — powered by AI vision (Google Gemini).
 A polished, mobile-first Cal AI clone built for the
 [8x Engineer "Build a Cal AI Clone" contest](https://8xengineer.com/contests/ai-calorie-tracker/apply).
 
+**🔗 Live demo:** https://nutrisnap-mocha-psi.vercel.app
+
+> Tip: open it on your phone (or in your browser's mobile/device view) — and try the
+> built-in **Salad / Burger / Breakfast** samples to see the AI analysis without
+> needing a photo.
+
 ---
 
 ## ✨ Features
