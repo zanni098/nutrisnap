@@ -1,0 +1,9 @@
+# Python dependencies for the NutriSnap Wellness Agent layer.
+#
+# The agent runs fully offline in mock mode with NO dependencies (stdlib only).
+# Install these only for the live and MCP-server capabilities:
+#
+#   pip install -r requirements.txt
+#
+google-genai>=1.0.0     # live Gemini backend (agent_runtime.py --live path)
+mcp>=1.2.0              # Model Context Protocol server (agent/mcp_server.py)

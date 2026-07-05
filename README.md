@@ -14,6 +14,44 @@ A polished, mobile-first Cal AI clone built for the
 
 ---
 
+## 🤖 Autonomous Wellness Agent — Capstone Layer
+
+> Built for the [**AI Agents: Intensive Vibe Coding Capstone**](https://www.kaggle.com/competitions/vibecoding-agents-capstone-project) (Google × Kaggle). Track: **Agents for Good**.
+
+On top of the photo→macros app sits an **autonomous agent** — a *Proactive Wellness
+Critic*. Instead of a passive `upload → numbers → stop` loop, it treats NutriSnap's
+features as **tools** and runs a **ReAct (Reason → Act → Observe)** loop that reads
+your history, quantifies your trajectory, and **acts on its own** — planning,
+approving, warning, or **blocking** a meal, and generating a grocery list to close
+nutritional gaps.
+
+**Course concepts demonstrated (≥3 required):**
+
+| Concept | Where |
+| --- | --- |
+| **Agent / ReAct loop** | [`agent_runtime.py`](./agent_runtime.py) — persona-driven Reason→Act→Observe |
+| **Tool registry (Agent skills)** | [`agent/tools.py`](./agent/tools.py) — 5 LLM-callable tools |
+| **MCP Server** | [`agent/mcp_server.py`](./agent/mcp_server.py) — same tools over Model Context Protocol |
+| **Security / guardrails** | [`agent/guardrails.py`](./agent/guardrails.py) — input/output/loop guards |
+| **Memory** | [`agent/memory.py`](./agent/memory.py) — short-term scratchpad + long-term profile |
+| **Deployability** | live app on Vercel (link above) |
+
+```bash
+# No API key needed — deterministic mock backend.
+pip install -r requirements.txt          # optional: only for live Gemini + MCP
+python demo_simulation.py                # narrated 4-scenario proof run
+python agent_runtime.py "Review my week and optimize my shopping list"
+python -m agent.mcp_server               # expose the tools as an MCP server
+```
+
+Demo verdicts (reproducible): weekly audit → `PROACTIVE_PLAN` · burger vs declining
+week → `BLOCK` · salad → `APPROVE` · non-food image → `BLOCK` (guardrail).
+
+See [`KAGGLE_SUBMISSION.md`](./KAGGLE_SUBMISSION.md) for the full capstone writeup and
+[`VIDEO_SCRIPT.md`](./VIDEO_SCRIPT.md) for the demo-video plan.
+
+---
+
 ## ✨ Features
 
 - **📸 Snap or upload** a meal → AI identifies every food item and estimates

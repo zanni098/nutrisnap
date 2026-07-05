@@ -1,0 +1,121 @@
+{
+  "backend": "mock (offline)",
+  "scenarios": [
+    {
+      "name": "Autonomous weekly audit",
+      "intervention": {
+        "verdict": "PROACTIVE_PLAN",
+        "reasoning": "7-day audit shows sustained deficits: protein (-82g/day vs goal). Meal quality is declining (avg health score 5.8 -> 3.3).",
+        "mealAssessment": "",
+        "deficits": [
+          "protein"
+        ],
+        "correctiveActions": [
+          "Add ~82g protein/day: front-load 30g at breakfast (Greek yogurt or eggs).",
+          "Health scores are trending down \u2014 plan dinners ahead for the next 3 days instead of deciding when hungry."
+        ],
+        "groceryList": [
+          "spinach",
+          "broccoli",
+          "mixed berries",
+          "carrots",
+          "chicken breast",
+          "Greek yogurt",
+          "eggs",
+          "canned tuna",
+          "cottage cheese",
+          "lentils",
+          "whey protein"
+        ],
+        "nextCheckin": "Tomorrow after dinner \u2014 I will re-audit the trajectory."
+      }
+    },
+    {
+      "name": "Imbalanced meal (burger)",
+      "intervention": {
+        "verdict": "BLOCK",
+        "reasoning": "7-day audit shows sustained deficits: protein (-82g/day vs goal). Meal quality is declining (avg health score 5.8 -> 3.3).",
+        "mealAssessment": "'Double Cheeseburger and Fries' scores 2/10 (1150 kcal) while your health trend is already declining \u2014 logging it was withheld.",
+        "deficits": [
+          "protein"
+        ],
+        "correctiveActions": [
+          "Add ~82g protein/day: front-load 30g at breakfast (Greek yogurt or eggs).",
+          "Health scores are trending down \u2014 plan dinners ahead for the next 3 days instead of deciding when hungry."
+        ],
+        "groceryList": [
+          "spinach",
+          "broccoli",
+          "mixed berries",
+          "carrots",
+          "chicken breast",
+          "Greek yogurt",
+          "eggs",
+          "canned tuna",
+          "cottage cheese",
+          "lentils",
+          "whey protein"
+        ],
+        "nextCheckin": "Tomorrow after dinner \u2014 I will re-audit the trajectory."
+      }
+    },
+    {
+      "name": "Healthy meal (salad)",
+      "intervention": {
+        "verdict": "APPROVE",
+        "reasoning": "7-day audit shows sustained deficits: protein (-82g/day vs goal). Meal quality is declining (avg health score 5.8 -> 3.3).",
+        "mealAssessment": "'Grilled Chicken Salad' fits your goals (9/10) \u2014 approved and logged.",
+        "deficits": [
+          "protein"
+        ],
+        "correctiveActions": [
+          "Add ~82g protein/day: front-load 30g at breakfast (Greek yogurt or eggs).",
+          "Health scores are trending down \u2014 plan dinners ahead for the next 3 days instead of deciding when hungry."
+        ],
+        "groceryList": [
+          "spinach",
+          "broccoli",
+          "mixed berries",
+          "carrots",
+          "chicken breast",
+          "Greek yogurt",
+          "eggs",
+          "canned tuna",
+          "cottage cheese",
+          "lentils",
+          "whey protein"
+        ],
+        "nextCheckin": "Tomorrow after dinner \u2014 I will re-audit the trajectory."
+      }
+    },
+    {
+      "name": "Non-food image",
+      "intervention": {
+        "verdict": "BLOCK",
+        "reasoning": "7-day audit shows sustained deficits: protein (-82g/day vs goal). Meal quality is declining (avg health score 5.8 -> 3.3).",
+        "mealAssessment": "Image rejected: no food detected. Nothing was logged.",
+        "deficits": [
+          "protein"
+        ],
+        "correctiveActions": [
+          "Add ~82g protein/day: front-load 30g at breakfast (Greek yogurt or eggs).",
+          "Health scores are trending down \u2014 plan dinners ahead for the next 3 days instead of deciding when hungry."
+        ],
+        "groceryList": [
+          "spinach",
+          "broccoli",
+          "mixed berries",
+          "carrots",
+          "chicken breast",
+          "Greek yogurt",
+          "eggs",
+          "canned tuna",
+          "cottage cheese",
+          "lentils",
+          "whey protein"
+        ],
+        "nextCheckin": "Tomorrow after dinner \u2014 I will re-audit the trajectory."
+      }
+    }
+  ]
+}

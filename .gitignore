@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python (wellness agent layer)
+__pycache__/
+*.py[cod]
+.ruff_cache/
+agent/data/
