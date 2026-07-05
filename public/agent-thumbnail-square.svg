@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" font-family="Geist, Inter, Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="sbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#052e16"/>
+      <stop offset="0.55" stop-color="#14532d"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#sbg)"/>
+  <g fill="#ffffff" opacity="0.06">
+    <circle cx="500" cy="90" r="120"/>
+    <circle cx="120" cy="520" r="150"/>
+  </g>
+
+  <!-- badge (centered) -->
+  <rect x="174" y="70" width="252" height="34" rx="17" fill="#ffffff" opacity="0.12"/>
+  <text x="300" y="93" font-size="15" font-weight="700" fill="#bbf7d0" text-anchor="middle">Google × Kaggle · Vibe Coding Capstone</text>
+
+  <!-- emoji + title, vertically centered so a wide cover crop still reads -->
+  <text x="300" y="205" font-size="66" text-anchor="middle">🥗🤖</text>
+  <text x="300" y="285" font-size="62" font-weight="800" fill="#ffffff" text-anchor="middle">NutriSnap</text>
+  <text x="300" y="330" font-size="36" font-weight="800" fill="#86efac" text-anchor="middle">Wellness Agent</text>
+  <text x="300" y="372" font-size="17" font-weight="600" fill="#e2e8f0" text-anchor="middle">An autonomous Proactive Wellness Critic</text>
+
+  <!-- verdict chips: 2 x 2 grid so they fit a square crop -->
+  <g font-size="17" font-weight="800" text-anchor="middle">
+    <rect x="168" y="418" width="120" height="38" rx="19" fill="#dcfce7"/><text x="228" y="444" fill="#15803d">APPROVE</text>
+    <rect x="312" y="418" width="120" height="38" rx="19" fill="#fef3c7"/><text x="372" y="444" fill="#b45309">WARN</text>
+    <rect x="168" y="470" width="120" height="38" rx="19" fill="#fee2e2"/><text x="228" y="496" fill="#b91c1c">BLOCK</text>
+    <rect x="312" y="470" width="176" height="38" rx="19" fill="#dbeafe"/><text x="400" y="496" fill="#1d4ed8">PROACTIVE PLAN</text>
+  </g>
+
+  <text x="300" y="548" font-size="14" font-weight="600" fill="#bbf7d0" text-anchor="middle">ReAct · Tool registry · MCP · Guardrails · Memory</text>
+</svg>
