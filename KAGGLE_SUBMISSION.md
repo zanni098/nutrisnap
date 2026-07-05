@@ -1,7 +1,9 @@
 # NutriSnap Wellness Agent — Proactive Wellness Critic
 
-**AI Agents: Intensive Vibe Coding Capstone Project**
-Built on top of [NutriSnap](https://github.com/zanni098/nutrisnap) · Live app: https://nutrisnap-mocha-psi.vercel.app
+**AI Agents: Intensive Vibe Coding Capstone Project** · **Track: Agents for Good**
+Repo: [github.com/zanni098/nutrisnap](https://github.com/zanni098/nutrisnap) · Live app: https://nutrisnap-mocha-psi.vercel.app · **Live agent: https://nutrisnap-mocha-psi.vercel.app/agent**
+
+> **Course concepts demonstrated (≥3 required → 6 shown):** Agent / ReAct loop · Tool registry (agent skills) · **MCP server** · Security guardrails · Memory · Deployability.
 
 ---
 
@@ -42,6 +44,8 @@ The agent persona is a strict **"Proactive Wellness Critic"**: evidence-first (n
 | **Agent Persona + ReAct loop** | `agent_runtime.py` — a `WellnessAgent` that runs a bounded Reason→Act→Observe loop under the Proactive Wellness Critic system prompt, terminating in a schema-constrained JSON verdict. |
 | **Security & Guardrails** (safety modules) | `agent/guardrails.py` — three layers: **input guards** (reject non-food / invalid files before any tool runs), **output guards** (clamp model output to physically plausible macro ranges), **loop guards** (tool whitelist + iteration budget so autonomy is bounded). |
 | **Memory management** | `agent/memory.py` — short-term ReAct scratchpad *plus* a persistent long-term profile (dietary trends, preferences, past verdicts) so the user never re-states context across sessions. |
+| **MCP server** | `agent/mcp_server.py` — the same five tools re-published over the **Model Context Protocol** (FastMCP, stdio), so any MCP client (Claude Desktop, the Agents CLI, Gemini) can call NutriSnap's tools directly. |
+| **Deployability** | The product is **deployed on Vercel**, and the agent itself ships as a browser route (`/agent`, `src/lib/agent.ts`) so judges can run the ReAct loop live — plus a one-command local Python runtime. |
 | **Local-first execution** | Runs fully offline on a deterministic **mock backend** (no key, no network) for reproducible demos, and identically against **live Google Gemini** (`google-genai`, `gemini-2.5-flash` + fallbacks) when `GEMINI_API_KEY` is set. |
 
 The Python agent shares the **exact data schema** as the deployed Next.js app (`nutrisnap.meals.v1` / `nutrisnap.profile.v1`), so a real exported log and the agent are fully interchangeable — the agent operates on the same food data the live app produces.
@@ -72,8 +76,11 @@ The Python agent shares the **exact data schema** as the deployed Next.js app (`
 
 ## Run it
 
+**Fastest:** open the live agent at **https://nutrisnap-mocha-psi.vercel.app/agent** →
+"Seed 7-day demo week" → "Audit my week", or submit a sample meal and watch it decide.
+
 ```bash
-# From the repo root. No API key needed — runs on the deterministic mock backend.
+# Or run the Python agent locally. No API key needed — deterministic mock backend.
 python demo_simulation.py            # full narrated 4-scenario proof run
 python demo_simulation.py --quiet    # verdicts only
 
@@ -81,6 +88,10 @@ python demo_simulation.py --quiet    # verdicts only
 python agent_runtime.py "Review my week and optimize my shopping list for muscle recovery"
 python agent_runtime.py "Should I eat this?" --image public/samples/burger.jpg
 python agent_runtime.py --seed       # (re)seed the 7-day demo history
+
+# Expose the tools as an MCP server (stdio):
+pip install -r requirements.txt
+python -m agent.mcp_server
 
 # Run identically against live Gemini instead of mock:
 export GEMINI_API_KEY=...            # (Windows: set GEMINI_API_KEY=...)
@@ -104,11 +115,15 @@ python agent_runtime.py "Audit my week"
 nutrisnap/
 ├── agent_runtime.py          # entry point: WellnessAgent ReAct loop + persona + CLI
 ├── demo_simulation.py        # narrated 4-scenario proof run (this submission's media)
-├── KAGGLE_SUBMISSION.md       # this document
-└── agent/
-    ├── tools.py              # LLM-callable tool registry (ADK-style declarations)
-    ├── guardrails.py         # input / output / loop safety guards
-    ├── memory.py             # short-term scratchpad + long-term profile state
-    ├── llm_client.py         # Gemini client (retry+fallback) + deterministic MockLLM
-    └── data_store.py         # JSON bridge to the app's localStorage schema + demo seed
+├── KAGGLE_SUBMISSION.md      # this document
+├── VIDEO_SCRIPT.md           # ≤5-min demo video plan
+├── agent/
+│   ├── tools.py              # LLM-callable tool registry (ADK-style declarations)
+│   ├── mcp_server.py         # same tools over the Model Context Protocol (FastMCP)
+│   ├── guardrails.py         # input / output / loop safety guards
+│   ├── memory.py             # short-term scratchpad + long-term profile state
+│   ├── llm_client.py         # Gemini client (retry+fallback) + deterministic MockLLM
+│   └── data_store.py         # JSON bridge to the app's localStorage schema + demo seed
+└── src/app/agent/            # live browser agent (ReAct trace + intervention UI)
+    └── (src/lib/agent.ts)    # TypeScript port of the deterministic agent
 ```
