@@ -25,6 +25,12 @@ your history, quantifies your trajectory, and **acts on its own** — planning,
 approving, warning, or **blocking** a meal, and generating a grocery list to close
 nutritional gaps.
 
+![Wellness Agent architecture](./public/agent-architecture.png)
+
+**Try it live:** the agent runs in the browser at [`/agent`](https://nutrisnap-mocha-psi.vercel.app/agent)
+— seed a demo week, run a weekly audit, or submit a sample meal and watch it decide
+in context. Or run the Python version locally (below).
+
 **Course concepts demonstrated (≥3 required):**
 
 | Concept | Where |

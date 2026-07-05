@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Flame, Plus } from "lucide-react";
+import Link from "next/link";
+import { Flame, Plus, Sparkles } from "lucide-react";
 import { useMeals, useProfile } from "@/lib/store";
 import { useMounted } from "@/lib/useMounted";
 import { useCapture } from "@/components/CaptureProvider";
@@ -61,8 +62,17 @@ export default function TodayPage() {
             {profile.name ? `, ${profile.name}` : ""}
           </h1>
         </div>
-        <div className="flex items-center gap-1 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-semibold text-brand-dark">
-          <Flame className="h-4 w-4" /> {streak(meals)} day streak
+        <div className="flex items-center gap-2">
+          <Link
+            href="/agent"
+            aria-label="Open the AI Wellness Agent"
+            className="flex items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            <Sparkles className="h-4 w-4" /> Agent
+          </Link>
+          <div className="flex items-center gap-1 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-semibold text-brand-dark">
+            <Flame className="h-4 w-4" /> {streak(meals)} day streak
+          </div>
         </div>
       </header>
 
