@@ -74,7 +74,12 @@ Expected: prints `API URL`, `anon key`, and `service_role key`. First run pulls 
 npx supabase status -o env > .env.test
 ```
 
-Then confirm `.env.test` contains `SUPABASE_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` values.
+Then confirm `.env.test` contains `API_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` values.
+
+Note the CLI calls the endpoint **`API_URL`**, not `SUPABASE_URL`. Verified against CLI
+2.111.0. Every consumer of this file must use that exact name — a helper defaulting to
+`process.env.SUPABASE_URL` silently falls back to a hardcoded localhost URL and appears to
+work right up until it doesn't.
 
 - [ ] **Step 6: Ignore local artifacts**
 
@@ -141,13 +146,17 @@ Create `tests/helpers/supabase.ts`:
 ```ts
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
-const ANON = process.env.ANON_KEY ?? "";
-const SERVICE = process.env.SERVICE_ROLE_KEY ?? "";
+// `supabase status -o env` emits API_URL / ANON_KEY / SERVICE_ROLE_KEY.
+// Fail loudly rather than defaulting: a silent localhost fallback turns a
+// misconfigured environment into a confusing test failure much later.
+const URL = process.env.API_URL;
+const ANON = process.env.ANON_KEY;
+const SERVICE = process.env.SERVICE_ROLE_KEY;
 
-if (!ANON || !SERVICE) {
+if (!URL || !ANON || !SERVICE) {
   throw new Error(
-    "Missing ANON_KEY / SERVICE_ROLE_KEY. Run: npx supabase status -o env > .env.test",
+    "Missing API_URL / ANON_KEY / SERVICE_ROLE_KEY. " +
+      "Run: npx supabase status -o env > .env.test",
   );
 }
 
