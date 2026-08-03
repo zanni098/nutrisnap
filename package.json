@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint src tests",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:reset": "supabase db reset"

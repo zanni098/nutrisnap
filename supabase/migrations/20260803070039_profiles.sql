@@ -70,3 +70,8 @@ grant update (display_name, goal_calories, goal_protein, goal_carbs, goal_fat)
 -- without this the "never a window without a profile" invariant is false for
 -- them on any database that has not been reset.
 insert into public.profiles (id) select id from auth.users on conflict do nothing;
+
+-- service_role bypasses RLS but NOT object privileges — those are separate
+-- mechanisms. Without this grant the trusted server identity cannot read or
+-- write the table at all.
+grant all on public.profiles to service_role;

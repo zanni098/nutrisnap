@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "@supabase/supabase-js";
-import { anonUser } from "../helpers/supabase";
+import { anonUser, seedMeal, serviceClient } from "../helpers/supabase";
 
 describe("profiles RLS", () => {
   it("auto-creates a profile row for every new user", async () => {
@@ -118,5 +118,119 @@ describe("profiles RLS", () => {
     // access to profile data.
     const isAccessDenied = error !== null || (Array.isArray(data) && data.length === 0);
     expect(isAccessDenied).toBe(true);
+  });
+});
+
+describe("meals RLS", () => {
+  it("lets a user read back their own meal", async () => {
+    const a = await anonUser();
+    const id = await seedMeal(a, "My lunch");
+
+    const { data, error } = await a.client
+      .from("meals")
+      .select("id, title")
+      .eq("id", id)
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.title).toBe("My lunch");
+  });
+
+  it("hides one user's meals from another", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+    await seedMeal(a, "Private lunch");
+
+    const { data } = await b.client.from("meals").select("id");
+    expect(data).toEqual([]);
+  });
+
+  it("rejects inserting a meal owned by someone else", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+
+    const { error } = await b.client.from("meals").insert({
+      user_id: a.id,
+      meal_type: "dinner",
+      title: "Forged",
+      calories: 1,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    });
+
+    expect(error).not.toBeNull();
+  });
+
+  it("rejects updating another user's meal", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+    const id = await seedMeal(a, "Original");
+
+    await b.client.from("meals").update({ title: "hacked" }).eq("id", id);
+
+    // serviceClient bypasses RLS: the only witness that cannot be masked by
+    // the SELECT policy. See the plan's note on testing cross-tenant writes.
+    const svc = serviceClient();
+    const { data } = await svc.from("meals").select("title").eq("id", id).single();
+    expect(data?.title).toBe("Original");
+  });
+
+  it("rejects reassigning a meal to another user", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+    const id = await seedMeal(a);
+
+    await b.client.from("meals").update({ user_id: b.id }).eq("id", id);
+
+    // Verified: this still passes with every meals policy opened to using(true),
+    // because user_id sits outside the column-scoped UPDATE grant. Two
+    // independent barriers block reassignment; this test proves the grant, and
+    // the policy's `with check` is the second. Do not read it as policy coverage.
+    const svc = serviceClient();
+    const { data } = await svc.from("meals").select("user_id").eq("id", id).single();
+    expect(data?.user_id).toBe(a.id);
+  });
+
+  it("rejects deleting another user's meal", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+    const id = await seedMeal(a);
+
+    await b.client.from("meals").delete().eq("id", id);
+
+    const svc = serviceClient();
+    const { data } = await svc.from("meals").select("id").eq("id", id);
+    expect(data).toHaveLength(1);
+  });
+
+  it("refuses a client-supplied created_at", async () => {
+    const a = await anonUser();
+    const id = await seedMeal(a);
+
+    // created_at sits outside the column-scoped UPDATE grant, so backdating
+    // must be impossible even for the row's own owner.
+    const { error } = await a.client
+      .from("meals")
+      .update({ created_at: "1999-01-01T00:00:00Z" })
+      .eq("id", id);
+
+    expect(error).not.toBeNull();
+  });
+
+  it("lets a user correct their own meal", async () => {
+    const a = await anonUser();
+    const id = await seedMeal(a);
+
+    const { data, error } = await a.client
+      .from("meals")
+      .update({ servings: 2, title: "Corrected" })
+      .eq("id", id)
+      .select()
+      .single();
+
+    expect(error).toBeNull();
+    expect(Number(data?.servings)).toBe(2);
+    expect(data?.title).toBe("Corrected");
   });
 });
