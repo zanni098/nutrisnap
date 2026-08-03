@@ -45,3 +45,8 @@ __pycache__/
 *.py[cod]
 .ruff_cache/
 agent/data/
+
+# supabase local artifacts
+.env.test
+supabase/.branches
+supabase/.temp
