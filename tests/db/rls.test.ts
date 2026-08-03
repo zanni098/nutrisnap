@@ -234,3 +234,151 @@ describe("meals RLS", () => {
     expect(data?.title).toBe("Corrected");
   });
 });
+
+describe("billing tables are not client-writable", () => {
+  it("rejects a user granting themselves a subscription", async () => {
+    const a = await anonUser();
+
+    const { error } = await a.client.from("subscriptions").insert({
+      user_id: a.id,
+      status: "active",
+      plan: "pro",
+      current_period_end: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+
+    expect(error).not.toBeNull();
+  });
+
+  it("lets a user read their own subscription written by the service role", async () => {
+    const a = await anonUser();
+    const svc = serviceClient();
+
+    const { error: insertErr } = await svc.from("subscriptions").insert({
+      user_id: a.id,
+      status: "active",
+      plan: "pro",
+      current_period_end: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+    expect(insertErr).toBeNull();
+
+    const { data, error } = await a.client
+      .from("subscriptions")
+      .select("plan, status")
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.plan).toBe("pro");
+  });
+
+  it("hides another user's subscription", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+    const svc = serviceClient();
+
+    await svc.from("subscriptions").insert({
+      user_id: a.id,
+      status: "active",
+      plan: "pro",
+      current_period_end: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+
+    const { data } = await b.client.from("subscriptions").select("plan");
+    expect(data).toEqual([]);
+  });
+
+  it("rejects a user upgrading an existing subscription row", async () => {
+    const a = await anonUser();
+    const svc = serviceClient();
+
+    await svc.from("subscriptions").insert({
+      user_id: a.id,
+      status: "canceled",
+      plan: "free",
+      current_period_end: new Date(Date.now() - 1000).toISOString(),
+    });
+
+    await a.client.from("subscriptions").update({ plan: "pro" }).eq("user_id", a.id);
+
+    // serviceClient is the RLS-independent witness.
+    const { data } = await svc
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", a.id)
+      .single();
+
+    expect(data?.plan).toBe("free");
+  });
+
+  it("rejects a user deleting their subscription to escape a revoked state", async () => {
+    const a = await anonUser();
+    const svc = serviceClient();
+
+    await svc.from("subscriptions").insert({
+      user_id: a.id,
+      status: "revoked",
+      plan: "pro",
+      current_period_end: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+
+    await a.client.from("subscriptions").delete().eq("user_id", a.id);
+
+    const { data } = await svc.from("subscriptions").select("status").eq("user_id", a.id);
+    expect(data).toHaveLength(1);
+  });
+
+  it("rejects writing usage counters directly", async () => {
+    const a = await anonUser();
+
+    const { error } = await a.client
+      .from("usage_daily")
+      .insert({ user_id: a.id, day: "2026-08-03", analyses_used: 0 });
+
+    expect(error).not.toBeNull();
+  });
+
+  it("rejects resetting an existing usage counter", async () => {
+    const a = await anonUser();
+    const svc = serviceClient();
+
+    await svc
+      .from("usage_daily")
+      .insert({ user_id: a.id, day: "2026-08-03", analyses_used: 3 });
+
+    await a.client
+      .from("usage_daily")
+      .update({ analyses_used: 0 })
+      .eq("user_id", a.id)
+      .eq("day", "2026-08-03");
+
+    const { data } = await svc
+      .from("usage_daily")
+      .select("analyses_used")
+      .eq("user_id", a.id)
+      .single();
+
+    expect(data?.analyses_used).toBe(3);
+  });
+
+  it("lets a user read their own usage so the UI can show a quota", async () => {
+    const a = await anonUser();
+    const svc = serviceClient();
+
+    await svc
+      .from("usage_daily")
+      .insert({ user_id: a.id, day: "2026-08-03", analyses_used: 2 });
+
+    const { data, error } = await a.client
+      .from("usage_daily")
+      .select("analyses_used")
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.analyses_used).toBe(2);
+  });
+
+  it("hides webhook events entirely", async () => {
+    const a = await anonUser();
+    const { data } = await a.client.from("webhook_events").select("id");
+    expect(data ?? []).toEqual([]);
+  });
+});
