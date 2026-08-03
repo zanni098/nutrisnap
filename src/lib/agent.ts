@@ -1,6 +1,6 @@
 /**
  * Browser-side Wellness Agent — a TypeScript port of the Python ReAct agent
- * (see agent_runtime.py / agent/*.py) so the deployed app can demonstrate the
+ * (see wellness-agent/) so the deployed app can demonstrate the
  * autonomous "Proactive Wellness Critic" live, over the user's real localStorage
  * diary, with no backend.
  *
@@ -14,7 +14,7 @@ import type { AnalysisResult, Goals, MealEntry, MealType } from "./types";
 import { DEFAULT_GOALS, dayKey, scaled } from "./nutrition";
 import { newId } from "./store";
 
-// Thresholds — kept in lockstep with agent/guardrails.py
+// Thresholds — kept in lockstep with wellness-agent/agent/guardrails.py
 export const LOW_HEALTH_SCORE = 3;
 
 export type Verdict = "APPROVE" | "WARN" | "BLOCK" | "PROACTIVE_PLAN";

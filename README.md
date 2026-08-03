@@ -51,19 +51,26 @@ outright — and generates a grocery list to close the nutritional gaps it finds
 **[Run it in the browser →](https://nutrisnap-mocha-psi.vercel.app/agent)** Seed a demo
 week, run a weekly audit, or submit a meal and watch it reason in context.
 
+The agent exists twice, deliberately: a reference Python implementation in
+[`wellness-agent/`](wellness-agent), and a TypeScript port in
+[`src/lib/agent.ts`](src/lib/agent.ts) so the deployed app can run it in the browser
+against your real diary with no backend. The two are kept in lockstep.
+
 | Component | Implementation |
 | --- | --- |
-| ReAct loop | [`agent_runtime.py`](agent_runtime.py) — persona-driven Reason→Act→Observe |
-| Tool registry | [`agent/tools.py`](agent/tools.py) — 5 LLM-callable tools |
-| MCP server | [`agent/mcp_server.py`](agent/mcp_server.py) — same tools over Model Context Protocol |
-| Guardrails | [`agent/guardrails.py`](agent/guardrails.py) — input, output, and loop guards |
-| Memory | [`agent/memory.py`](agent/memory.py) — short-term scratchpad + long-term profile |
+| ReAct loop | [`agent_runtime.py`](wellness-agent/agent_runtime.py) — persona-driven Reason→Act→Observe |
+| Tool registry | [`agent/tools.py`](wellness-agent/agent/tools.py) — 5 LLM-callable tools |
+| MCP server | [`agent/mcp_server.py`](wellness-agent/agent/mcp_server.py) — same tools over Model Context Protocol |
+| Guardrails | [`agent/guardrails.py`](wellness-agent/agent/guardrails.py) — input, output, and loop guards |
+| Memory | [`agent/memory.py`](wellness-agent/agent/memory.py) — short-term scratchpad + long-term profile |
 
 Reproducible verdicts from the demo suite: weekly audit → `PROACTIVE_PLAN` · burger
 against a declining week → `BLOCK` · salad → `APPROVE` · non-food image → `BLOCK`
 (guardrail catch).
 
 ```bash
+cd wellness-agent
+
 pip install -r requirements.txt   # optional: only for live Gemini + MCP
 python demo_simulation.py         # narrated 4-scenario proof run
 python agent_runtime.py "Review my week and optimize my shopping list"
@@ -114,6 +121,7 @@ remaining the offline cache layer.
 | AI | Google Gemini (`@google/genai`), `gemini-2.5-flash` with fallbacks |
 | Icons / motion | lucide-react, framer-motion |
 | Persistence | `localStorage` via `useSyncExternalStore` |
+| Agent | Python (reference) + TypeScript port, MCP server |
 | Hosting | Vercel |
 
 ---
@@ -138,15 +146,18 @@ npm run build   # production build
 npm run lint    # eslint
 ```
 
+The Python agent is a separate, self-contained project — see
+[Autonomous Wellness Agent](#autonomous-wellness-agent) above.
+
 ### Project structure
 
 ```
-src/app          Today / History / Insights / Settings pages + analyze API
-src/components   Capture flow, bottom nav, rings, cards, badges
-src/lib          Gemini client, nutrition math, localStorage store, image utils
-agent/           Wellness agent: tools, guardrails, memory, MCP server
-public/samples   Sample meal photos
-ai-logs/         Full build log: prompts, schema design, decisions
+src/app            Today / History / Insights / Settings, /agent, analyze API route
+src/components     Capture flow, bottom nav, rings, cards, badges
+src/lib            Gemini client, nutrition math, localStorage store, agent port
+wellness-agent/    Python ReAct agent: runtime, tools, guardrails, memory, MCP server
+public/samples     Sample meal photos
+ai-logs/           Full build log: prompts, schema design, decisions
 ```
 
 ---
