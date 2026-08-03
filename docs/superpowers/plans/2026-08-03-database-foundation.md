@@ -254,14 +254,34 @@ describe("profiles RLS", () => {
     const a = await anonUser();
     const b = await anonUser();
 
-    const { data } = await b.client
-      .from("profiles")
-      .update({ display_name: "hacked" })
-      .eq("id", a.id)
-      .select();
+    await b.client.from("profiles").update({ display_name: "hacked" }).eq("id", a.id);
 
-    // RLS filters the row out, so nothing is updated.
-    expect(data).toEqual([]);
+    // Read the victim row back as its OWNER. Asserting on the update's own
+    // return value proves nothing: UPDATE ... RETURNING is filtered by the
+    // SELECT policy, so an attacker gets [] whether the write was blocked or
+    // succeeded. Only reading the row back distinguishes those two worlds.
+    const { data: victim } = await a.client
+      .from("profiles")
+      .select("display_name")
+      .eq("id", a.id)
+      .single();
+
+    expect(victim?.display_name).not.toBe("hacked");
+  });
+
+  it("rejects repointing a profile row at another user's id", async () => {
+    const a = await anonUser();
+    const b = await anonUser();
+
+    await b.client.from("profiles").update({ id: a.id }).eq("id", b.id);
+
+    const { data: victim } = await a.client
+      .from("profiles")
+      .select("id")
+      .eq("id", a.id)
+      .single();
+
+    expect(victim?.id).toBe(a.id);
   });
 });
 ```
@@ -318,16 +338,31 @@ create trigger profiles_touch_updated_at
   before update on public.profiles
   for each row execute function public.touch_updated_at();
 
+-- search_path = '' (not 'public'). With an explicit search_path that omits
+-- pg_temp, Postgres still searches pg_temp BEFORE pg_catalog for relation
+-- names. Any authenticated user can create temp tables, so an unqualified
+-- reference inside a SECURITY DEFINER function can be shadowed by an
+-- attacker-controlled temp table running as postgres. Harmless on a trigger
+-- function, fatal on the caller-invoked RPCs in Task 6 — so set the safe
+-- template here, where it gets copied from.
 create function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-  insert into public.profiles (id) values (new.id);
+  -- Idempotent: this fires on EVERY auth.users insert and shares that
+  -- transaction, so any error aborts user creation and surfaces as an opaque
+  -- auth 500. on conflict costs nothing and removes that failure mode.
+  insert into public.profiles (id) values (new.id) on conflict (id) do nothing;
   return new;
 end $$;
 
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Backfill: anonymous users already exist from earlier tasks' test runs, and
+-- without this the "never a window without a profile" invariant is false for
+-- them on any database that has not been reset.
+insert into public.profiles (id) select id from auth.users on conflict do nothing;
 ```
 
 - [ ] **Step 4: Apply and run the tests**
@@ -510,7 +545,16 @@ create trigger meals_touch_updated_at
 -- Object-level privileges. Without these, Postgres denies the query with 42501
 -- before RLS is ever evaluated. Scope them to exactly the operations that have
 -- a matching policy, so the grant is a second, independent barrier.
-grant select, insert, update, delete on public.meals to authenticated;
+--
+-- UPDATE is column-scoped deliberately. RLS policies cannot restrict columns —
+-- only grants can. A table-wide update grant would let a client backdate
+-- created_at, which meals_user_created_idx orders on and which any streak or
+-- daily-total logic reads.
+grant select, insert, delete on public.meals to authenticated;
+grant update (meal_type, servings, title, description, notes, items,
+              calories, protein, carbs, fat, health_score, confidence,
+              image_path)
+  on public.meals to authenticated;
 ```
 
 - [ ] **Step 5: Apply and run**
