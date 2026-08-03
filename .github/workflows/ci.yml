@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Lint, typecheck, database suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Boots the full local stack in Docker. The first run pulls several
+      # images, so this is the slowest step by a wide margin.
+      - name: Start Supabase
+        run: supabase start
+
+      # The CLI emits API_URL / ANON_KEY / SERVICE_ROLE_KEY. The test harness
+      # reads exactly those names and throws if any are missing, so a broken
+      # step here fails loudly rather than silently hitting a default URL.
+      - name: Export local credentials
+        run: supabase status -o env > .env.test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # 51 tests: RLS isolation across every table, storage folder scoping,
+      # anonymous-account cleanup, and the quota concurrency test that proves
+      # ten parallel requests against a limit of three grant exactly three.
+      - name: Database tests
+        run: npm test
+
+      - name: Dump Supabase logs on failure
+        if: failure()
+        run: supabase status || true
