@@ -12,6 +12,24 @@
 
 ---
 
+## Testing cross-tenant writes: read back with the service client
+
+Established empirically during Task 3 and applies to every RLS test that follows.
+
+Asserting on the return value of `UPDATE … RETURNING` proves nothing — that payload is
+filtered by the **SELECT** policy, so an attacker receives `[]` whether their write was
+blocked or succeeded. A test written that way stays green even if the UPDATE policy is
+replaced with `using (true) with check (true)`.
+
+The fix is to read the victim row back. But there is a second subtlety: an `UPDATE … WHERE`
+must read its target rows, so it passes through the SELECT policy as well. Breaking only
+the UPDATE policy is therefore masked by an intact SELECT policy, and the attack only lands
+when both are open. A read-back through the victim's own client inherits that same masking.
+
+So: **read the victim row back with `serviceClient()`**, which bypasses RLS entirely and
+cannot be fooled by either policy. That is the only witness that distinguishes "write
+blocked" from "write succeeded but hidden".
+
 ## File Structure
 
 | File | Responsibility |
