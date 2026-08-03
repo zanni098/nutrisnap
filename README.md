@@ -1,91 +1,124 @@
-# 🥗 NutriSnap — AI Calorie Tracker
+# NutriSnap
 
-Snap a photo of any meal and instantly get **calorie counts, macros, and a full
-nutritional breakdown** — powered by AI vision (Google Gemini).
+**Point your camera at a meal. Get calories, macros, and a full nutritional breakdown in seconds.**
 
-A polished, mobile-first Cal AI clone built for the
-[8x Engineer "Build a Cal AI Clone" contest](https://8xengineer.com/contests/ai-calorie-tracker/apply).
+Most calorie trackers ask you to search a database, guess a portion size, and log six
+ingredients by hand. NutriSnap replaces that with one photo. AI vision identifies every
+food item on the plate, estimates calories and protein/carbs/fat per item, and gives you
+a reviewable breakdown before anything is logged.
 
-**🔗 Live demo:** https://nutrisnap-mocha-psi.vercel.app
-
-> Tip: open it on your phone (or in your browser's mobile/device view) — and try the
-> built-in **Salad / Burger / Breakfast** samples to see the AI analysis without
-> needing a photo.
+**→ [Try it live](https://nutrisnap-mocha-psi.vercel.app)** — mobile-first, so open it on
+your phone or use your browser's device view. No signup, no API key: tap a built-in
+sample meal to see the full analysis immediately.
 
 ---
 
-## 🤖 Autonomous Wellness Agent — Capstone Layer
+## What it does
 
-> Built for the [**AI Agents: Intensive Vibe Coding Capstone**](https://www.kaggle.com/competitions/vibecoding-agents-capstone-project) (Google × Kaggle). Track: **Agents for Good**.
+**📸 Photo to macros.** Snap or upload a meal. Every item is identified separately with
+its own calorie and macro estimate, plus totals, a health score, a confidence rating,
+and a short nutrition tip.
 
-On top of the photo→macros app sits an **autonomous agent** — a *Proactive Wellness
-Critic*. Instead of a passive `upload → numbers → stop` loop, it treats NutriSnap's
-features as **tools** and runs a **ReAct (Reason → Act → Observe)** loop that reads
-your history, quantifies your trajectory, and **acts on its own** — planning,
-approving, warning, or **blocking** a meal, and generating a grocery list to close
-nutritional gaps.
+**✏️ Review before you log.** Adjust servings, set the meal type, and correct the AI
+before anything is committed. The model proposes; you decide.
 
-![Wellness Agent architecture](./public/agent-architecture.png)
+**🎯 Daily dashboard.** Animated calorie ring, remaining-calorie counter, and macro
+progress bars measured against your personal targets.
 
-**Try it live:** the agent runs in the browser at [`/agent`](https://nutrisnap-mocha-psi.vercel.app/agent)
-— seed a demo week, run a weekly audit, or submit a sample meal and watch it decide
-in context. Or run the Python version locally (below).
+**📅 History & insights.** Every day grouped by date with per-day totals, a 7-day
+calorie chart, average intake, and your macro distribution over time.
 
-**Course concepts demonstrated (≥3 required):**
+**🧮 Goal calculator.** Mifflin-St Jeor TDEE calculation to set personalized calorie and
+macro targets for losing, maintaining, or gaining.
 
-| Concept | Where |
+**🔥 Streaks and polish.** Considered empty, loading, and error states throughout.
+Works offline — your data lives on your device.
+
+---
+
+## Autonomous Wellness Agent
+
+Logging numbers is passive. NutriSnap also ships a **Proactive Wellness Critic** — an
+autonomous agent that treats the app's own features as callable tools and acts on your
+data without being asked.
+
+It runs a **ReAct loop** (Reason → Act → Observe): it reads your eating history,
+quantifies your trajectory, and then plans, approves, warns, or **blocks** a meal
+outright — and generates a grocery list to close the nutritional gaps it finds.
+
+![Wellness Agent architecture](public/agent-architecture.png)
+
+**[Run it in the browser →](https://nutrisnap-mocha-psi.vercel.app/agent)** Seed a demo
+week, run a weekly audit, or submit a meal and watch it reason in context.
+
+| Component | Implementation |
 | --- | --- |
-| **Agent / ReAct loop** | [`agent_runtime.py`](./agent_runtime.py) — persona-driven Reason→Act→Observe |
-| **Tool registry (Agent skills)** | [`agent/tools.py`](./agent/tools.py) — 5 LLM-callable tools |
-| **MCP Server** | [`agent/mcp_server.py`](./agent/mcp_server.py) — same tools over Model Context Protocol |
-| **Security / guardrails** | [`agent/guardrails.py`](./agent/guardrails.py) — input/output/loop guards |
-| **Memory** | [`agent/memory.py`](./agent/memory.py) — short-term scratchpad + long-term profile |
-| **Deployability** | live app on Vercel (link above) |
+| ReAct loop | [`agent_runtime.py`](agent_runtime.py) — persona-driven Reason→Act→Observe |
+| Tool registry | [`agent/tools.py`](agent/tools.py) — 5 LLM-callable tools |
+| MCP server | [`agent/mcp_server.py`](agent/mcp_server.py) — same tools over Model Context Protocol |
+| Guardrails | [`agent/guardrails.py`](agent/guardrails.py) — input, output, and loop guards |
+| Memory | [`agent/memory.py`](agent/memory.py) — short-term scratchpad + long-term profile |
+
+Reproducible verdicts from the demo suite: weekly audit → `PROACTIVE_PLAN` · burger
+against a declining week → `BLOCK` · salad → `APPROVE` · non-food image → `BLOCK`
+(guardrail catch).
 
 ```bash
-# No API key needed — deterministic mock backend.
-pip install -r requirements.txt          # optional: only for live Gemini + MCP
-python demo_simulation.py                # narrated 4-scenario proof run
+pip install -r requirements.txt   # optional: only for live Gemini + MCP
+python demo_simulation.py         # narrated 4-scenario proof run
 python agent_runtime.py "Review my week and optimize my shopping list"
-python -m agent.mcp_server               # expose the tools as an MCP server
+python -m agent.mcp_server        # expose the tools as an MCP server
 ```
 
-Demo verdicts (reproducible): weekly audit → `PROACTIVE_PLAN` · burger vs declining
-week → `BLOCK` · salad → `APPROVE` · non-food image → `BLOCK` (guardrail).
-
-See [`KAGGLE_SUBMISSION.md`](./KAGGLE_SUBMISSION.md) for the full capstone writeup and
-[`VIDEO_SCRIPT.md`](./VIDEO_SCRIPT.md) for the demo-video plan.
+The demo backend is deterministic and needs no API key.
 
 ---
 
-## ✨ Features
+## Engineering notes
 
-- **📸 Snap or upload** a meal → AI identifies every food item and estimates
-  calories + protein/carbs/fat per item, with totals.
-- **🎯 Daily dashboard** with an animated calorie ring, remaining-calorie
-  counter, and macro progress bars against your goals.
-- **✏️ Review before logging** — adjust servings, pick the meal type, and see
-  the AI's health score, confidence, and a short nutrition tip.
-- **📅 History** of every day, grouped by date with per-day totals and macros.
-- **📊 Insights** — 7-day calorie bar chart, average intake, and your macro
-  distribution.
-- **🧮 Goal calculator** — Mifflin-St Jeor TDEE to set personalized calorie &
-  macro targets (lose / maintain / gain).
-- **🔥 Streaks**, sample meals to try instantly, graceful empty/loading/error
-  states, and offline-friendly local persistence.
+The interesting problem in NutriSnap isn't calling a vision model. It's making the
+output trustworthy enough to build a product on.
 
-## 🛠️ Tech stack
+**Typed output, not free text.** `POST /api/analyze` downscales the image client-side,
+then calls Gemini with a strict `responseSchema`. The model doesn't return prose that
+gets parsed — it fills a typed contract: per-item nutrition, totals, health score,
+confidence, tip.
 
-| Layer        | Choice                                            |
-| ------------ | ------------------------------------------------- |
-| Framework    | Next.js (App Router) + React 19                   |
-| Language     | TypeScript                                        |
-| Styling      | Tailwind CSS v4                                    |
-| AI           | Google Gemini (`@google/genai`), `gemini-2.5-flash` w/ fallbacks |
-| Icons / motion | lucide-react, framer-motion                     |
-| Persistence  | `localStorage` via `useSyncExternalStore`         |
+**Defensive normalization.** A raw model will happily return totals that don't match the
+sum of its own items, or an occasional negative gram count. Every response goes through
+a server-side reconciliation pass that rounds, clamps, and re-derives totals from items
+before it reaches the client.
 
-## 🚀 Getting started
+**Fallbacks over optimism.** Vision endpoints return transient `503 model overloaded`
+under real traffic. Requests retry with exponential backoff across a multi-model
+fallback chain rather than surfacing a failure to the user.
+
+**Honest confidence.** The UI shows the model's confidence and always routes through a
+review step. The product never pretends to a precision it doesn't have.
+
+**Local-first persistence.** State is held in `localStorage` via `useSyncExternalStore`
+— no account required, instant startup, works with no connection, and no user's food
+diary sitting on someone else's server. The tradeoff is no cross-device sync; a Supabase
+(Postgres + Auth + Storage) backend is the next architectural step, with local storage
+remaining the offline cache layer.
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js (App Router) + React 19 |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| AI | Google Gemini (`@google/genai`), `gemini-2.5-flash` with fallbacks |
+| Icons / motion | lucide-react, framer-motion |
+| Persistence | `localStorage` via `useSyncExternalStore` |
+| Hosting | Vercel |
+
+---
+
+## Running locally
 
 ```bash
 npm install
@@ -96,11 +129,8 @@ echo "GEMINI_API_KEY=your_key_here" > .env.local
 npm run dev   # http://localhost:3000
 ```
 
-Then open the app on your phone (or use Chrome's device toolbar) and tap the
-center **camera** button to snap a meal. No API key? The capture sheet has
-**sample meals** you can analyze instantly.
-
-### Scripts
+Open on your phone or use Chrome's device toolbar, then tap the center camera button.
+No API key handy? The capture sheet has sample meals that analyze instantly.
 
 ```bash
 npm run dev     # start dev server
@@ -108,50 +138,39 @@ npm run build   # production build
 npm run lint    # eslint
 ```
 
-## 🧠 How the AI works
-
-`POST /api/analyze` receives a downscaled image, sends it to Gemini with a
-strict `responseSchema`, and returns a typed nutrition object (per-item +
-totals + health score + confidence + tip). The server reconciles totals,
-rounds/clamps values, and retries with model fallback on transient overloads.
-
-See [`ai-logs/`](./ai-logs) for the full build log, prompt, and schema design.
-
-## 📁 Project structure
+### Project structure
 
 ```
-src/app        Today / History / Insights / Settings pages + analyze API
-src/components Capture flow, bottom nav, rings, cards, badges
-src/lib        Gemini client, nutrition math, localStorage store, image utils
-public/samples Sample meal photos for the demo
-ai-logs        AI conversation / decision log
+src/app          Today / History / Insights / Settings pages + analyze API
+src/components   Capture flow, bottom nav, rings, cards, badges
+src/lib          Gemini client, nutrition math, localStorage store, image utils
+agent/           Wellness agent: tools, guardrails, memory, MCP server
+public/samples   Sample meal photos
+ai-logs/         Full build log: prompts, schema design, decisions
 ```
 
 ---
 
-## 📝 Reflection
+## Roadmap
 
-**What was easy.** Scaffolding with Next.js + Tailwind and getting a clean
-mobile shell up was quick. Gemini's structured-output (`responseSchema`) made
-the hardest part — turning a photo into reliable, typed nutrition data — almost
-declarative: define the schema once and the model fills it in.
-
-**What was difficult.** Two things. (1) Making the numbers *trustworthy*: a raw
-model can return totals that don't match item sums or occasional negative
-values, so I added a server-side normalization pass that rounds, clamps, and
-reconciles totals against the items. (2) Reliability: the first end-to-end call
-hit a transient `503 model overloaded`, so I added retries with exponential
-backoff and a multi-model fallback chain — the kind of resilience a real product
-needs.
-
-**What I learned.** Treating the LLM as a typed function (schema in, validated
-object out) is the key to a product that feels solid rather than demo-ware. The
-value isn't just "call the API" — it's the layer around it: image downscaling
-for speed, defensive normalization for trust, fallbacks for uptime, and a UI
-that's honest about confidence. Designing the calorie ring + macro system also
-reinforced how much polish lives in empty states, loading states, and small
-animations.
+- Supabase backend — Postgres, Auth, RLS, and Storage for meal photos, with cross-device sync
+- Native iOS and Android builds via Capacitor
+- Barcode scanning for packaged foods
+- Weekly agent digests delivered by push notification
 
 ---
 
-Built with an AI pair-programmer. See [`ai-logs/`](./ai-logs).
+## Built with AI, documented in the open
+
+NutriSnap was built with an AI pair-programmer, and the entire process is committed to
+the repo. [`ai-logs/`](ai-logs) contains the real conversation trail — prompt iterations,
+schema design decisions, and the debugging of the normalization and fallback layers.
+[`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md) hold the working context that keeps
+agent-assisted changes consistent with the architecture.
+
+If you want to see how someone actually uses AI tooling to ship — not the marketing
+version — start there.
+
+---
+
+MIT licensed. Issues and PRs welcome.
