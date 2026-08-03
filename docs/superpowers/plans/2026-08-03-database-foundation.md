@@ -506,6 +506,11 @@ create policy "meals_delete_own" on public.meals
 create trigger meals_touch_updated_at
   before update on public.meals
   for each row execute function public.touch_updated_at();
+
+-- Object-level privileges. Without these, Postgres denies the query with 42501
+-- before RLS is ever evaluated. Scope them to exactly the operations that have
+-- a matching policy, so the grant is a second, independent barrier.
+grant select, insert, update, delete on public.meals to authenticated;
 ```
 
 - [ ] **Step 5: Apply and run**
@@ -678,6 +683,13 @@ create table public.webhook_events (
 
 alter table public.webhook_events enable row level security;
 -- No policies at all: unreachable from any client key.
+
+-- Object-level privileges, deliberately read-only and mirroring the policies.
+-- Billing state and usage counters are written exclusively by the service role,
+-- so the absence of INSERT/UPDATE/DELETE here is a second barrier independent
+-- of RLS. webhook_events gets no grant whatsoever.
+grant select on public.subscriptions to authenticated;
+grant select on public.usage_daily   to authenticated;
 ```
 
 - [ ] **Step 4: Apply and run**
